@@ -18,8 +18,8 @@ class WeathersController extends AppController
      */
     public function index()
     {
-        $this->set('weathers', $this->paginate($this->Weathers));
-        $this->set('_serialize', ['weathers']);
+        //$this->set('weathers', $this->paginate($this->Weathers));
+        //$this->set('_serialize', ['weathers']);
     }
 
     /**

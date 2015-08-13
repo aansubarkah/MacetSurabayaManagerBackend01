@@ -41,6 +41,19 @@ use Cake\Routing\Router;
  */
 Router::defaultRouteClass('Route');
 
+// Router prefix for management api
+Router::prefix('manager', function ($routes) {
+    $routes->extensions(['json']);
+    $routes->resources('Accesses');
+    $routes->resources('Categories');
+    $routes->resources('Groups');
+    $routes->resources('Markers');
+    $routes->resources('Places');
+    $routes->resources('Respondents');
+    $routes->resources('Users');
+    $routes->resources('Weathers');
+});
+
 Router::scope('/', function ($routes) {
     /**
      * Here, we are connecting '/' (base path) to a controller called 'Pages',
