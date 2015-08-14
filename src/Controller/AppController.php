@@ -26,6 +26,9 @@ use Cake\Controller\Controller;
  */
 class AppController extends Controller
 {
+    public $components = [
+        'RequestHandler'
+    ];
 
     /**
      * Initialization hook method.

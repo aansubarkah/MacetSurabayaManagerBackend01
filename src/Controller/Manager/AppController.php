@@ -19,6 +19,9 @@ use Cake\Controller\Controller;
  */
 class AppController extends Controller
 {
+    public $components = [
+        'RequestHandler'
+    ];
 
     /**
      * Initialization hook method.
@@ -32,5 +35,7 @@ class AppController extends Controller
         parent::initialize();
         //$this->loadComponent('Flash');
         $this->loadComponent('RequestHandler');
+        $request = $this->request;
+        $response = $this->response->cors($request, '*');
     }
 }
