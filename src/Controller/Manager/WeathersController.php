@@ -10,6 +10,20 @@ use App\Controller\Manager\AppController;
  */
 class WeathersController extends AppController
 {
+    public $paginate = [
+        'fields' => ['Weathers.id', 'Weathers.name', 'Weathers.active'],
+        'limit' => 2,
+        'page' => 0,
+        'order' => [
+            'Weathers.name' => 'asc'
+        ]
+    ];
+
+    public function initialize()
+    {
+        parent::initialize();
+        $this->loadComponent('Paginator');
+    }
 
     /**
      * Index method
@@ -18,13 +32,40 @@ class WeathersController extends AppController
      */
     public function index()
     {
-        $weathers = $this->Weathers->find('all', [
+        $offset = 0;
+        if (isset($this->request->query['page'])) {
+            if (is_numeric($this->request->query['page'])) {
+                $offset = $this->request->query['page'] - 1;
+            }
+        }
+
+        $limit = 2;
+        if (isset($this->request->query['limit'])) {
+            if (is_numeric($this->request->query['limit'])) {
+                $limit = $this->request->query['limit'];
+            }
+        }
+
+        $fetchDataOptions = [
             'conditions' => ['Weathers.active' => true],
-            'order' => ['Weathers.name' => 'ASC']
-        ]);
+            'order' => ['Weathers.name' => 'ASC'],
+            'limit' => $limit,
+            'page' => $offset
+        ];
+
+        $this->paginate =$fetchDataOptions;
+        $weathers = $this->paginate('Weathers');
+
+        $allWeathers = $this->Weathers->find('all',$fetchDataOptions);
+        $total=$allWeathers->count();
+
+        $meta = [
+            'total' => $total
+        ];
         $this->set([
             'weathers' => $weathers,
-            '_serialize' => ['weathers']
+            'meta' => $meta,
+            '_serialize' => ['weathers', 'meta']
         ]);
     }
 
@@ -51,7 +92,7 @@ class WeathersController extends AppController
      */
     public function add()
     {
-        if(isset($this->request->data['weather']['active'])) unset($this->request->data['weather']['active']);
+        if (isset($this->request->data['weather']['active'])) unset($this->request->data['weather']['active']);
 
         $weather = $this->Weathers->newEntity($this->request->data['weather']);
         if ($this->request->is('post')) {
@@ -78,7 +119,7 @@ class WeathersController extends AppController
     {
         $weather = $this->Weathers->get($id);
         if ($this->request->is(['patch', 'post', 'put'])) {
-            if(isset($this->request->data['weather']['active'])) unset($this->request->data['weather']['active']);
+            if (isset($this->request->data['weather']['active'])) unset($this->request->data['weather']['active']);
 
             $weather = $this->Weathers->patchEntity($weather, $this->request->data['weather']);
             if ($this->Weathers->save($weather)) {
