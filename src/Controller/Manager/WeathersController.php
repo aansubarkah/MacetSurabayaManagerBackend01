@@ -12,7 +12,7 @@ class WeathersController extends AppController
 {
     public $paginate = [
         'fields' => ['Weathers.id', 'Weathers.name', 'Weathers.active'],
-        'limit' => 2,
+        'limit' => 25,
         'page' => 0,
         'order' => [
             'Weathers.name' => 'asc'
@@ -46,6 +46,13 @@ class WeathersController extends AppController
             }
         }
 
+        $query = '';
+        if (isset($this->request->query['query'])) {
+            if (!empty(trim($this->request->query['query']))) {
+                $query = trim($this->request->query['query']);
+            }
+        }
+
         $fetchDataOptions = [
             'conditions' => ['Weathers.active' => true],
             'order' => ['Weathers.name' => 'ASC'],
@@ -53,11 +60,15 @@ class WeathersController extends AppController
             'page' => $offset
         ];
 
-        $this->paginate =$fetchDataOptions;
+        if (!empty(trim($query))) {
+            $fetchDataOptions['conditions']['LOWER(Weathers.name) LIKE'] = '%' . strtolower($query) . '%';
+        }
+
+        $this->paginate = $fetchDataOptions;
         $weathers = $this->paginate('Weathers');
 
-        $allWeathers = $this->Weathers->find('all',$fetchDataOptions);
-        $total=$allWeathers->count();
+        $allWeathers = $this->Weathers->find('all', $fetchDataOptions);
+        $total = $allWeathers->count();
 
         $meta = [
             'total' => $total
