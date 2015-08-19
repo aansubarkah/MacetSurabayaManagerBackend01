@@ -202,3 +202,11 @@ DispatcherFactory::add('ControllerFactory');
 Type::build('datetime')->useLocaleParser();
 
 Plugin::load('ADmad/JwtAuth');
+
+/**
+ * Connect middleware/dispatcher filters.
+ */
+DispatcherFactory::add('Asset');
+DispatcherFactory::add('Routing');
+DispatcherFactory::add('ControllerFactory');
+DispatcherFactory::add('REST', ['priority' => 1]);

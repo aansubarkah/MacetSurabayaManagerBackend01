@@ -104,6 +104,7 @@ class WeathersController extends AppController
     public function add()
     {
         if (isset($this->request->data['weather']['active'])) unset($this->request->data['weather']['active']);
+        $this->request->data['weather']['active'] = true;
 
         $weather = $this->Weathers->newEntity($this->request->data['weather']);
         if ($this->request->is('post')) {
