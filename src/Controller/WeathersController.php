@@ -20,6 +20,13 @@ class WeathersController extends AppController
     {
         //$this->set('weathers', $this->paginate($this->Weathers));
         //$this->set('_serialize', ['weathers']);
+        $this->autoRender = false;
+        $weather = $this->Weathers->find('all', [
+            'conditions' => ['Weathers.id' => 1]
+
+        ]);
+        $weather = $weather->first();
+        //print_r($weather->name);
     }
 
     /**

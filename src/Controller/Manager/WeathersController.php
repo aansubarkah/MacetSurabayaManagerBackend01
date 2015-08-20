@@ -32,52 +32,59 @@ class WeathersController extends AppController
      */
     public function index()
     {
-        $offset = 0;
-        if (isset($this->request->query['page'])) {
-            if (is_numeric($this->request->query['page'])) {
-                $offset = $this->request->query['page'] - 1;
+        if (isset($this->request->query['searchName'])) {
+            $searchName = trim($this->request->query['searchName']);
+            if (!empty($searchName)) {
+                $this->checkExistence($searchName);
             }
-        }
-
-        $limit = 2;
-        if (isset($this->request->query['limit'])) {
-            if (is_numeric($this->request->query['limit'])) {
-                $limit = $this->request->query['limit'];
+        } else {
+            $offset = 0;
+            if (isset($this->request->query['page'])) {
+                if (is_numeric($this->request->query['page'])) {
+                    $offset = $this->request->query['page'] - 1;
+                }
             }
-        }
 
-        $query = '';
-        if (isset($this->request->query['query'])) {
-            if (!empty(trim($this->request->query['query']))) {
-                $query = trim($this->request->query['query']);
+            $limit = 2;
+            if (isset($this->request->query['limit'])) {
+                if (is_numeric($this->request->query['limit'])) {
+                    $limit = $this->request->query['limit'];
+                }
             }
+
+            $query = '';
+            if (isset($this->request->query['query'])) {
+                if (!empty(trim($this->request->query['query']))) {
+                    $query = trim($this->request->query['query']);
+                }
+            }
+
+            $fetchDataOptions = [
+                'conditions' => ['Weathers.active' => true],
+                'order' => ['Weathers.name' => 'ASC'],
+                'limit' => $limit,
+                'page' => $offset
+            ];
+
+            if (!empty(trim($query))) {
+                $fetchDataOptions['conditions']['LOWER(Weathers.name) LIKE'] = '%' . strtolower($query) . '%';
+            }
+
+            $this->paginate = $fetchDataOptions;
+            $weathers = $this->paginate('Weathers');
+
+            $allWeathers = $this->Weathers->find('all', $fetchDataOptions);
+            $total = $allWeathers->count();
+
+            $meta = [
+                'total' => $total
+            ];
+            $this->set([
+                'weathers' => $weathers,
+                'meta' => $meta,
+                '_serialize' => ['weathers', 'meta']
+            ]);
         }
-
-        $fetchDataOptions = [
-            'conditions' => ['Weathers.active' => true],
-            'order' => ['Weathers.name' => 'ASC'],
-            'limit' => $limit,
-            'page' => $offset
-        ];
-
-        if (!empty(trim($query))) {
-            $fetchDataOptions['conditions']['LOWER(Weathers.name) LIKE'] = '%' . strtolower($query) . '%';
-        }
-
-        $this->paginate = $fetchDataOptions;
-        $weathers = $this->paginate('Weathers');
-
-        $allWeathers = $this->Weathers->find('all', $fetchDataOptions);
-        $total = $allWeathers->count();
-
-        $meta = [
-            'total' => $total
-        ];
-        $this->set([
-            'weathers' => $weathers,
-            'meta' => $meta,
-            '_serialize' => ['weathers', 'meta']
-        ]);
     }
 
     /**
@@ -103,21 +110,47 @@ class WeathersController extends AppController
      */
     public function add()
     {
-        if (isset($this->request->data['weather']['active'])) unset($this->request->data['weather']['active']);
-        $this->request->data['weather']['active'] = true;
-
-        $weather = $this->Weathers->newEntity($this->request->data['weather']);
         if ($this->request->is('post')) {
-            if ($this->Weathers->save($weather)) {
-                $message = 'Saved';
+            if (isset($this->request->data['weather']['active'])) unset($this->request->data['weather']['active']);
+            $this->request->data['weather']['active'] = true;
+
+            // check if data exists
+            $weatherOnDB = $this->Weathers->find('all', [
+                'conditions' => ['LOWER(Weathers.name) LIKE' => strtolower($this->request->data['weather']['name'])],
+                'limit' => 1
+            ]);
+
+            // if exists
+            if ($weatherOnDB->count() > 0) {
+                //if not active, activate
+                $weatherOnDB=$weatherOnDB->first();
+                if ($weatherOnDB->active == false) {
+                    $weather = $this->Weathers->get($weatherOnDB->id);
+                    $weather->active = true;
+                    $this->Weathers->save($weather);
+                    //$weather='success';
+
+                    $this->set([
+                        'weather' => $weather,
+                        '_serialize' => ['weather']
+                    ]);
+                }else{
+                    $this->set([
+                        'weather' => $weatherOnDB,
+                        '_serialize' => ['weather']
+                    ]);
+                }
+
             } else {
-                $message = 'Error';
+                $weather = $this->Weathers->newEntity($this->request->data['weather']);
+                $this->Weathers->save($weather);
+                //$weather='success';
+                $this->set([
+                    'weather' => $weather,
+                    '_serialize' => ['weather']
+                ]);
             }
         }
-        $this->set([
-            'weather' => $message,
-            '_serialize' => ['weather']
-        ]);
     }
 
     /**
@@ -141,7 +174,7 @@ class WeathersController extends AppController
             }
         }
         $this->set([
-            'weather' => $message,
+            'weather' => $weather,
             '_serialize' => ['weather']
         ]);
     }
@@ -165,7 +198,34 @@ class WeathersController extends AppController
             }
         }
         $this->set([
-            'weather' => $message,
+            'weather' => $weather,
+            '_serialize' => ['weather']
+        ]);
+    }
+
+    public function checkExistence($name = null)
+    {
+        $query = strtolower($name);
+
+        $weather = $this->Weathers->find('all', [
+            'conditions' => ['LOWER(Weathers.name) LIKE' => '%' . $query . '%'],
+            'limit' => 1
+        ]);
+
+        if ($weather->count() < 1) {
+            $data = [
+                [
+                    'id' => 0,
+                    'name' => '',
+                    'active' => 0
+                ]
+            ];
+        } else {
+            $data = $weather;
+        }
+
+        $this->set([
+            'weather' => $data,
             '_serialize' => ['weather']
         ]);
     }
