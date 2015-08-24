@@ -10,6 +10,22 @@ use App\Controller\Manager\AppController;
  */
 class PlacesController extends AppController
 {
+    public $limit = 25;
+
+    public $paginate = [
+        'fields' => ['Places.id', 'Places.name', 'Places.active'],
+        'limit' => 25,
+        'page' => 0,
+        'order' => [
+            'Places.name' => 'asc'
+        ]
+    ];
+
+    public function initialize()
+    {
+        parent::initialize();
+        $this->loadComponent('Paginator');
+    }
 
     /**
      * Index method
@@ -18,14 +34,57 @@ class PlacesController extends AppController
      */
     public function index()
     {
-        $places = $this->Places->find('all', [
-            'conditions' => ['Places.active' => true],
-            'order' => ['Places.name' => 'ASC']
-        ]);
-        $this->set([
-            'places' => $places,
-            '_serialize' => ['places']
-        ]);
+        $limit = $this->limit;
+        if (isset($this->request->query['limit'])) {
+            if (is_numeric($this->request->query['limit'])) {
+                $limit = $this->request->query['limit'];
+            }
+        }
+
+        if (isset($this->request->query['searchName'])) {
+            $searchName = trim($this->request->query['searchName']);
+            $this->checkExistence($searchName, $limit);
+        } else {
+            $offset = 0;
+            if (isset($this->request->query['page'])) {
+                if (is_numeric($this->request->query['page'])) {
+                    $offset = $this->request->query['page'] - 1;
+                }
+            }
+
+            $query = '';
+            if (isset($this->request->query['query'])) {
+                if (!empty(trim($this->request->query['query']))) {
+                    $query = trim($this->request->query['query']);
+                }
+            }
+
+            $fetchDataOptions = [
+                'conditions' => ['Places.active' => true],
+                'order' => ['Places.name' => 'ASC'],
+                'limit' => $limit,
+                'page' => $offset
+            ];
+
+            if (!empty(trim($query))) {
+                $fetchDataOptions['conditions']['LOWER(Places.name) LIKE'] = '%' . strtolower($query) . '%';
+            }
+
+            $this->paginate = $fetchDataOptions;
+            $places = $this->paginate('Places');
+
+            $allPlaces = $this->Places->find('all', $fetchDataOptions);
+            $total = $allPlaces->count();
+
+            $meta = [
+                'total' => $total
+            ];
+            $this->set([
+                'places' => $places,
+                'meta' => $meta,
+                '_serialize' => ['places', 'meta']
+            ]);
+        }
     }
 
     /**
@@ -51,7 +110,7 @@ class PlacesController extends AppController
      */
     public function add()
     {
-        if(isset($this->request->data['place']['active'])) unset($this->request->data['place']['active']);
+        if (isset($this->request->data['place']['active'])) unset($this->request->data['place']['active']);
 
         $place = $this->Places->newEntity($this->request->data['place']);
         if ($this->request->is('post')) {
@@ -78,7 +137,7 @@ class PlacesController extends AppController
     {
         $place = $this->Places->get($id);
         if ($this->request->is(['patch', 'post', 'put'])) {
-            if(isset($this->request->data['place']['active'])) unset($this->request->data['place']['active']);
+            if (isset($this->request->data['place']['active'])) unset($this->request->data['place']['active']);
 
             $place = $this->Places->patchEntity($place, $this->request->data['place']);
             if ($this->Places->save($place)) {
@@ -113,6 +172,39 @@ class PlacesController extends AppController
         }
         $this->set([
             'place' => $message,
+            '_serialize' => ['place']
+        ]);
+    }
+
+    public function checkExistence($name = null, $limit = 25)
+    {
+        $data = [
+            [
+                'id' => 0,
+                'name' => '',
+                'active' => 0
+            ]
+        ];
+
+        $fetchDataOptions = [
+            'order' => ['Places.name' => 'ASC'],
+            'limit' => $limit
+        ];
+
+        $query = trim(strtolower($name));
+
+        if (!empty($query)) {
+            $fetchDataOptions['conditions']['LOWER(Places.name) LIKE'] = '%' . $query . '%';
+        }
+
+        $place = $this->Places->find('all', $fetchDataOptions);
+
+        if ($place->count() > 0) {
+            $data = $place;
+        }
+
+        $this->set([
+            'place' => $data,
             '_serialize' => ['place']
         ]);
     }

@@ -10,6 +10,22 @@ use App\Controller\Manager\AppController;
  */
 class MarkersController extends AppController
 {
+    public $limit = 25;
+
+    public $paginate = [
+        'fields' => ['Markers.id', 'Markers.name', 'Markers.active'],
+        'limit' => 0,
+        'page' => 0,
+        'order' => [
+            'Markers.name' => 'asc'
+        ]
+    ];
+
+    public function initialize()
+    {
+        parent::initialize();
+        $this->loadComponent('Paginator');
+    }
 
     /**
      * Index method
@@ -18,20 +34,56 @@ class MarkersController extends AppController
      */
     public function index()
     {
-        $markers = $this->Markers->find('all', [
-            'conditions' => ['Markers.active' => true],
-            'order' => ['Markers.created' => 'DESC']
-        ]);
+        $lastMinutes = 30;//default is past 30 minutes
+        if (isset($this->request->query['lastminutes'])) {
+            if (is_numeric($this->request->query['lastminutes'])) {
+                $lastMinutes = $this->request->query['lastminutes'];
+            }
+        }
+        $lastMinutesString = '-' . $lastMinutes . ' minutes';
+
+        $fetchDataOptions = [
+            'conditions' => [
+                'Markers.active' => true,
+                'OR' => [
+                    'Markers.created >=' => date('Y-m-d H:i:s', strtotime($lastMinutesString)),
+                    'AND'=>[
+                        'Markers.pinned' => true,
+                        'Markers.cleared' => false,
+                    ]
+
+                ],
+
+            ],
+            'order' => ['Markers.created' => 'DESC'],
+        ];
+
+        $markers = $this->Markers->find('all', $fetchDataOptions);
+        $markers = $markers->toArray();
+
+        $countMarkers = count($markers);
+        for ($i = 0; $i < $countMarkers; $i++) {
+            $markers[$i]['category'] = $markers[$i]['category_id'];
+            $markers[$i]['weather'] = $markers[$i]['weather_id'];
+        }
+
+        $allMarkers = $this->Markers->find('all', $fetchDataOptions);
+        $total = $allMarkers->count();
+
+        $meta = [
+            'total' => $total
+        ];
         $this->set([
             'markers' => $markers,
-            '_serialize' => ['markers']
+            'meta' => $meta,
+            '_serialize' => ['markers', 'meta']
         ]);
     }
 
     /**
      * View method
      *
-     * @param string|null $id Weather id.
+     * @param string|null $id Marker id.
      * @return void
      * @throws \Cake\Network\Exception\NotFoundException When record not found.
      */
@@ -51,26 +103,35 @@ class MarkersController extends AppController
      */
     public function add()
     {
-        if(isset($this->request->data['marker']['active'])) unset($this->request->data['marker']['active']);
-
-        $marker = $this->Markers->newEntity($this->request->data['marker']);
         if ($this->request->is('post')) {
-            if ($this->Markers->save($marker)) {
-                $message = 'Saved';
-            } else {
-                $message = 'Error';
-            }
+            if (isset($this->request->data['marker']['active'])) unset($this->request->data['marker']['active']);
+            $this->request->data['marker']['active'] = true;
+            if (isset($this->request->data['marker']['cleared'])) unset($this->request->data['marker']['cleared']);
+            $this->request->data['marker']['cleared'] = false;
+            unset($this->request->data['marker']['created']);
+            unset($this->request->data['marker']['modified']);
+
+            if (isset($this->request->data['marker']['category_id_'])) $this->request->data['marker']['category_id'] = $this->request->data['marker']['category_id_'];
+            if (isset($this->request->data['marker']['weather_id_'])) $this->request->data['marker']['weather_id'] = $this->request->data['marker']['weather_id_'];
+            if (isset($this->request->data['marker']['respondent_id_'])) $this->request->data['marker']['respondent_id'] = $this->request->data['marker']['respondent_id_'];
+
+
+            $this->request->data['marker']['user_id'] = 1;
+            //$this->request->data['marker']['respondent_id'] = 1;
+            $marker = $this->Markers->newEntity($this->request->data['marker']);
+            $this->Markers->save($marker);
+
+            $this->set([
+                'marker' => $marker,
+                '_serialize' => ['marker']
+            ]);
         }
-        $this->set([
-            'marker' => $message,
-            '_serialize' => ['marker']
-        ]);
     }
 
     /**
      * Edit method
      *
-     * @param string|null $id Weather id.
+     * @param string|null $id Marker id.
      * @return void Redirects on successful edit, renders view otherwise.
      * @throws \Cake\Network\Exception\NotFoundException When record not found.
      */
@@ -78,8 +139,8 @@ class MarkersController extends AppController
     {
         $marker = $this->Markers->get($id);
         if ($this->request->is(['patch', 'post', 'put'])) {
-            if(isset($this->request->data['marker']['active'])) unset($this->request->data['marker']['active']);
-            
+            if (isset($this->request->data['marker']['active'])) unset($this->request->data['marker']['active']);
+
             $marker = $this->Markers->patchEntity($marker, $this->request->data['marker']);
             if ($this->Markers->save($marker)) {
                 $message = 'Saved';
@@ -96,7 +157,7 @@ class MarkersController extends AppController
     /**
      * Delete method
      *
-     * @param string|null $id Weather id.
+     * @param string|null $id Marker id.
      * @return void Redirects to index.
      * @throws \Cake\Network\Exception\NotFoundException When record not found.
      */

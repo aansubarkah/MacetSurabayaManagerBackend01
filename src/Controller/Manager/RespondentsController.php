@@ -10,6 +10,22 @@ use App\Controller\Manager\AppController;
  */
 class RespondentsController extends AppController
 {
+    public $limit = 25;
+
+    public $paginate = [
+        'fields' => ['Respondents.id', 'Respondents.name', 'Respondents.active'],
+        'limit' => 25,
+        'page' => 0,
+        'order' => [
+            'Respondents.name' => 'asc'
+        ]
+    ];
+
+    public function initialize()
+    {
+        parent::initialize();
+        $this->loadComponent('Paginator');
+    }
 
     /**
      * Index method
@@ -18,14 +34,57 @@ class RespondentsController extends AppController
      */
     public function index()
     {
-        $respondents = $this->Respondents->find('all', [
-            'conditions' => ['Respondents.active' => true],
-            'order' => ['Respondents.name' => 'ASC']
-        ]);
-        $this->set([
-            'respondents' => $respondents,
-            '_serialize' => ['respondents']
-        ]);
+        $limit = $this->limit;
+        if (isset($this->request->query['limit'])) {
+            if (is_numeric($this->request->query['limit'])) {
+                $limit = $this->request->query['limit'];
+            }
+        }
+
+        if (isset($this->request->query['searchName'])) {
+            $searchName = trim($this->request->query['searchName']);
+            $this->checkExistence($searchName, $limit);
+        } else {
+            $offset = 0;
+            if (isset($this->request->query['page'])) {
+                if (is_numeric($this->request->query['page'])) {
+                    $offset = $this->request->query['page'] - 1;
+                }
+            }
+
+            $query = '';
+            if (isset($this->request->query['query'])) {
+                if (!empty(trim($this->request->query['query']))) {
+                    $query = trim($this->request->query['query']);
+                }
+            }
+
+            $fetchDataOptions = [
+                'conditions' => ['Respondents.active' => true],
+                'order' => ['Respondents.name' => 'ASC'],
+                'limit' => $limit,
+                'page' => $offset
+            ];
+
+            if (!empty(trim($query))) {
+                $fetchDataOptions['conditions']['LOWER(Respondents.name) LIKE'] = '%' . strtolower($query) . '%';
+            }
+
+            $this->paginate = $fetchDataOptions;
+            $respondents = $this->paginate('Respondents');
+
+            $allRespondents = $this->Respondents->find('all', $fetchDataOptions);
+            $total = $allRespondents->count();
+
+            $meta = [
+                'total' => $total
+            ];
+            $this->set([
+                'respondents' => $respondents,
+                'meta' => $meta,
+                '_serialize' => ['respondents', 'meta']
+            ]);
+        }
     }
 
     /**
@@ -113,6 +172,39 @@ class RespondentsController extends AppController
         }
         $this->set([
             'respondent' => $message,
+            '_serialize' => ['respondent']
+        ]);
+    }
+
+    public function checkExistence($name = null, $limit = 25)
+    {
+        $data = [
+            [
+                'id' => 0,
+                'name' => '',
+                'active' => 0
+            ]
+        ];
+
+        $fetchDataOptions = [
+            'order' => ['Respondents.name' => 'ASC'],
+            'limit' => $limit
+        ];
+
+        $query = trim(strtolower($name));
+
+        if (!empty($query)) {
+            $fetchDataOptions['conditions']['LOWER(Respondents.name) LIKE'] = '%' . $query . '%';
+        }
+
+        $respondent = $this->Respondents->find('all', $fetchDataOptions);
+
+        if ($respondent->count() > 0) {
+            $data = $respondent;
+        }
+
+        $this->set([
+            'respondent' => $data,
             '_serialize' => ['respondent']
         ]);
     }

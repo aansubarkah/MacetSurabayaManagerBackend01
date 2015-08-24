@@ -38,4 +38,6 @@ class AppController extends Controller
         $request = $this->request;
         $response = $this->response->cors($request, '*');
     }
+
+    public $limit = 25;
 }
