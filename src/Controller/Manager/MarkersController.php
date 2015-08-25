@@ -111,11 +111,6 @@ class MarkersController extends AppController
             unset($this->request->data['marker']['created']);
             unset($this->request->data['marker']['modified']);
 
-            if (isset($this->request->data['marker']['category_id_'])) $this->request->data['marker']['category_id'] = $this->request->data['marker']['category_id_'];
-            if (isset($this->request->data['marker']['weather_id_'])) $this->request->data['marker']['weather_id'] = $this->request->data['marker']['weather_id_'];
-            if (isset($this->request->data['marker']['respondent_id_'])) $this->request->data['marker']['respondent_id'] = $this->request->data['marker']['respondent_id_'];
-
-
             $this->request->data['marker']['user_id'] = 1;
             //$this->request->data['marker']['respondent_id'] = 1;
             $marker = $this->Markers->newEntity($this->request->data['marker']);
