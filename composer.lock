@@ -12,12 +12,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/ADmad/cakephp-jwt-auth.git",
-                "reference": "9a20b5647cd03afe0c9ea63ec30c5a3623752558"
+                "reference": "e1bb793e334b11bdaa19fb653f4b89a4544524f5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ADmad/cakephp-jwt-auth/zipball/9a20b5647cd03afe0c9ea63ec30c5a3623752558",
-                "reference": "9a20b5647cd03afe0c9ea63ec30c5a3623752558",
+                "url": "https://api.github.com/repos/ADmad/cakephp-jwt-auth/zipball/e1bb793e334b11bdaa19fb653f4b89a4544524f5",
+                "reference": "e1bb793e334b11bdaa19fb653f4b89a4544524f5",
                 "shasum": ""
             },
             "require": {
@@ -54,7 +54,7 @@
                 "cakephp",
                 "jwt"
             ],
-            "time": "2015-07-18 19:50:29"
+            "time": "2015-08-22 19:47:25"
         },
         {
             "name": "aura/installer-default",

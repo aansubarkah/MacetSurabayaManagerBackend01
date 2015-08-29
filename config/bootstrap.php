@@ -211,3 +211,4 @@ DispatcherFactory::add('Asset');
 DispatcherFactory::add('Routing');
 DispatcherFactory::add('ControllerFactory');
 DispatcherFactory::add('REST', ['priority' => 1]);
+Plugin::load('ADmad/JwtAuth');

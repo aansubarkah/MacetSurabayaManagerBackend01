@@ -52,6 +52,7 @@ Router::prefix('manager', function ($routes) {
     $routes->resources('Respondents');
     $routes->resources('Users');
     $routes->resources('Weathers');
+    $routes->fallbacks('InflectedRoute');
 });
 
 Router::scope('/', function ($routes) {

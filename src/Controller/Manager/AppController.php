@@ -8,6 +8,7 @@
 namespace App\Controller\Manager;
 
 use Cake\Controller\Controller;
+use Cake\Event\Event;
 
 /**
  * Application Controller
@@ -34,10 +35,32 @@ class AppController extends Controller
     {
         parent::initialize();
         //$this->loadComponent('Flash');
-        $this->loadComponent('RequestHandler');
+        $this->loadComponent(
+            'Auth',
+            [
+                'authenticate' => [
+                    'Form',
+                    'ADmad/JwtAuth.Jwt' => [
+                        'parameter' => '_token',
+                        'userModel' => 'Users',
+                        'scope' => ['Users.active' => 1],
+                        'fields' => [
+                            'id' => 'id'
+                        ]
+                    ]
+                ]
+            ]
+        );
         $request = $this->request;
         $response = $this->response->cors($request, '*');
     }
 
     public $limit = 25;
+
+    public function beforeFilter(Event $event)
+    {
+        //parent::beforeFilter($event);
+        $this->Auth->allow(['view','index']);
+        //$this->Auth->allow(['token']);
+    }
 }
