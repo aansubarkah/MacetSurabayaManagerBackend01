@@ -21,20 +21,120 @@ class UsersController extends AppController
         //$this->Auth->allow(['token']);
     }
 
+    public $limit = 25;
+
+    public $paginate = [
+        'fields' => ['Users.id', 'Users.username', 'Users.active'],
+        'limit' => 25,
+        'page' => 0,
+        'order' => [
+            'Users.name' => 'asc'
+        ]
+    ];
+
+    public function initialize()
+    {
+        parent::initialize();
+        $this->loadComponent('Paginator');
+    }
+
     /**
      * Index method
+     *
+     * parameters:
+     *
+     * $limit
+     * $searchName for individual search
+     * $page
+     * $query
      *
      * @return void
      */
     public function index()
     {
-        $users = $this->Users->find('all', [
-            'conditions' => ['Users.active' => true],
-            'order' => ['Users.username' => 'ASC']
-        ]);
+        $limit = $this->limit;
+        if (isset($this->request->query['limit'])) {
+            if (is_numeric($this->request->query['limit'])) {
+                $limit = $this->request->query['limit'];
+            }
+        }
+
+        if (isset($this->request->query['searchName'])) {
+            $searchName = trim($this->request->query['searchName']);
+            $this->checkExistence($searchName, $limit);
+        } else {
+            $offset = 0;
+            if (isset($this->request->query['page'])) {
+                if (is_numeric($this->request->query['page'])) {
+                    $offset = $this->request->query['page'] - 1;
+                }
+            }
+
+            $query = '';
+            if (isset($this->request->query['query'])) {
+                if (!empty(trim($this->request->query['query']))) {
+                    $query = trim($this->request->query['query']);
+                }
+            }
+
+            $fetchDataOptions = [
+                'conditions' => ['Users.active' => true],
+                'order' => ['Users.username' => 'ASC'],
+                'limit' => $limit,
+                'page' => $offset
+            ];
+
+            if (!empty(trim($query))) {
+                $fetchDataOptions['conditions']['LOWER(Users.username) LIKE'] = '%' . strtolower($query) . '%';
+            }
+
+            $this->paginate = $fetchDataOptions;
+            $users = $this->paginate('Users');
+
+            $allUsers = $this->Users->find('all', $fetchDataOptions);
+            $total = $allUsers->count();
+
+            $meta = [
+                'total' => $total
+            ];
+            $this->set([
+                'users' => $users,
+                'meta' => $meta,
+                '_serialize' => ['users', 'meta']
+            ]);
+        }
+    }
+
+    public function checkExistence($name = null, $limit = 25)
+    {
+        $data = [
+            [
+                'id' => 0,
+                'username' => '',
+                'active' => 0
+            ]
+        ];
+
+        $fetchDataOptions = [
+            'order' => ['Users.username' => 'ASC'],
+            'limit' => $limit
+        ];
+
+        $query = trim(strtolower($name));
+
+        if (!empty($query)) {
+            $fetchDataOptions['conditions']['LOWER(Users.username) LIKE'] = '%' . $query . '%';
+        }
+
+        $user = $this->Users->find('all', $fetchDataOptions);
+
+        if ($user->count() > 0) {
+            $data = $user;
+        }
+
         $this->set([
-            'users' => $users,
-            '_serialize' => ['users']
+            'user' => $data,
+            '_serialize' => ['user']
         ]);
     }
 
@@ -147,7 +247,7 @@ class UsersController extends AppController
             }
         }
         $this->set([
-            'user' => $message,
+            'user' => $user,
             '_serialize' => ['user']
         ]);
     }
@@ -171,7 +271,7 @@ class UsersController extends AppController
             }
         }
         $this->set([
-            'user' => $message,
+            'user' => $user,
             '_serialize' => ['user']
         ]);
     }
