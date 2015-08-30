@@ -60,7 +60,7 @@ class AppController extends Controller
     public function beforeFilter(Event $event)
     {
         //parent::beforeFilter($event);
-        $this->Auth->allow(['view', 'index', 'checkExistence']);
+        $this->Auth->allow(['view', 'index', 'checkExistence', 'edit', 'delete']);
         //$this->Auth->allow(['token']);
     }
 }

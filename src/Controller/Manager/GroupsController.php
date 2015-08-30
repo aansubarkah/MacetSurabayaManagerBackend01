@@ -10,6 +10,29 @@ use App\Controller\Manager\AppController;
  */
 class GroupsController extends AppController
 {
+    /*public function beforeFilter(Event $event)
+    {
+        parent::beforeFilter($event);
+        //$this->Auth->allow(['add', 'token']);
+        //$this->Auth->allow(['token']);
+    }*/
+
+    public $limit = 25;
+
+    public $paginate = [
+        'fields' => ['Groups.id', 'Groups.groupname', 'Groups.active'],
+        'limit' => 25,
+        'page' => 0,
+        'order' => [
+            'Groups.name' => 'asc'
+        ]
+    ];
+
+    public function initialize()
+    {
+        parent::initialize();
+        $this->loadComponent('Paginator');
+    }
 
     /**
      * Index method
@@ -18,13 +41,89 @@ class GroupsController extends AppController
      */
     public function index()
     {
-        $groups = $this->Groups->find('all', [
-            'conditions' => ['Groups.active' => true],
-            'order' => ['Groups.name' => 'ASC']
-        ]);
+        $limit = $this->limit;
+        if (isset($this->request->query['limit'])) {
+            if (is_numeric($this->request->query['limit'])) {
+                $limit = $this->request->query['limit'];
+            }
+        }
+
+        if (isset($this->request->query['searchName'])) {
+            $searchName = trim($this->request->query['searchName']);
+            $this->checkExistence($searchName, $limit);
+        } else {
+            $page = 1;
+            $offset = 0;
+            if (isset($this->request->query['page'])) {
+                if (is_numeric($this->request->query['page'])) {
+                    $page = (int)$this->request->query['page'];
+                    $offset = ($page - 1) * $limit;
+                }
+            }
+
+            $query = '';
+            if (isset($this->request->query['query'])) {
+                if (!empty(trim($this->request->query['query']))) {
+                    $query = trim($this->request->query['query']);
+                }
+            }
+
+            $conditions = ['Groups.active' => true];
+
+            if (!empty(trim($query))) {
+                $conditions['LOWER(Groups.name) LIKE'] = '%' . strtolower($query) . '%';
+            }
+
+            $groups = $this->Groups->find()
+                ->where($conditions)
+                ->order(['Groups.name' => 'ASC'])
+                ->limit($limit)->page($page)->offset($offset)
+                ->toArray();
+
+            $allGroups = $this->Groups->find()->where($conditions);
+            $total = $allGroups->count();
+
+            $meta = [
+                'total' => $total
+            ];
+            $this->set([
+                'groups' => $groups,
+                'meta' => $meta,
+                '_serialize' => ['groups', 'meta']
+            ]);
+        }
+    }
+
+    public function checkExistence($name = null, $limit = 25)
+    {
+        $data = [
+            [
+                'id' => 0,
+                'name' => '',
+                'active' => 0
+            ]
+        ];
+
+        $fetchDataOptions = [
+            'order' => ['Groups.name' => 'ASC'],
+            'limit' => $limit
+        ];
+
+        $query = trim(strtolower($name));
+
+        if (!empty($query)) {
+            $fetchDataOptions['conditions']['LOWER(Groups.name) LIKE'] = '%' . $query . '%';
+        }
+
+        $group = $this->Groups->find('all', $fetchDataOptions);
+
+        if ($group->count() > 0) {
+            $data = $group;
+        }
+
         $this->set([
-            'groups' => $groups,
-            '_serialize' => ['groups']
+            'group' => $data,
+            '_serialize' => ['group']
         ]);
     }
 

@@ -63,10 +63,12 @@ class UsersController extends AppController
             $searchName = trim($this->request->query['searchName']);
             $this->checkExistence($searchName, $limit);
         } else {
+            $page = 1;
             $offset = 0;
             if (isset($this->request->query['page'])) {
                 if (is_numeric($this->request->query['page'])) {
-                    $offset = $this->request->query['page'] - 1;
+                    $page = (int)$this->request->query['page'];
+                    $offset = ($page - 1) * $limit;
                 }
             }
 
@@ -77,22 +79,28 @@ class UsersController extends AppController
                 }
             }
 
-            $fetchDataOptions = [
-                'conditions' => ['Users.active' => true],
-                'order' => ['Users.username' => 'ASC'],
-                'limit' => $limit,
-                'page' => $offset
-            ];
+            $conditions = ['Users.active' => true];
 
             if (!empty(trim($query))) {
-                $fetchDataOptions['conditions']['LOWER(Users.username) LIKE'] = '%' . strtolower($query) . '%';
+                $conditions['LOWER(Users.username) LIKE'] = '%' . strtolower($query) . '%';
             }
 
-            $this->paginate = $fetchDataOptions;
-            $users = $this->paginate('Users');
+            $users = $this->Users->find()
+                ->where($conditions)
+                ->order(['Users.username' => 'ASC'])
+                ->limit($limit)->page($page)->offset($offset)
+                ->toArray();
 
-            $allUsers = $this->Users->find('all', $fetchDataOptions);
+            $allUsers = $this->Users->find()->where($conditions);
             $total = $allUsers->count();
+
+            // add group, to please Ember.js belongsTo
+            // always use count($array), do not using $total
+            // @param $countUsers
+            $countUsers = count($users);
+            for ($i = 0; $i < $countUsers; $i++) {
+                $users[$i]['group'] = $users[$i]['group_id'];
+            }
 
             $meta = [
                 'total' => $total
