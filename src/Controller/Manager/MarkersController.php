@@ -47,7 +47,7 @@ class MarkersController extends AppController
                 'Markers.active' => true,
                 'OR' => [
                     'Markers.created >=' => date('Y-m-d H:i:s', strtotime($lastMinutesString)),
-                    'AND'=>[
+                    'AND' => [
                         'Markers.pinned' => true,
                         'Markers.cleared' => false,
                     ]
@@ -111,8 +111,20 @@ class MarkersController extends AppController
             unset($this->request->data['marker']['created']);
             unset($this->request->data['marker']['modified']);
 
+            // if respondent not saved yet, create it first
+            if ($this->request->data['marker']['respondent_id'] == 0) {
+                $respondentToSave = [
+                    'name' => $this->request->data['marker']['respondentName'],
+                    'contact' => $this->request->data['marker']['respondentContact'],
+                    'active' => 1
+                ];
+                $respondent = $this->Markers->Respondents->newEntity($respondentToSave);
+                $this->Markers->Respondents->save($respondent);
+
+                $this->request->data['marker']['respondent_id'] = $respondent->id;
+            }
+
             $this->request->data['marker']['user_id'] = 1;
-            //$this->request->data['marker']['respondent_id'] = 1;
             $marker = $this->Markers->newEntity($this->request->data['marker']);
             $this->Markers->save($marker);
 
