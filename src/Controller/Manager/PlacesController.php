@@ -110,20 +110,18 @@ class PlacesController extends AppController
      */
     public function add()
     {
-        if (isset($this->request->data['place']['active'])) unset($this->request->data['place']['active']);
-
-        $place = $this->Places->newEntity($this->request->data['place']);
         if ($this->request->is('post')) {
-            if ($this->Places->save($place)) {
-                $message = 'Saved';
-            } else {
-                $message = 'Error';
-            }
+            if (isset($this->request->data['place']['active'])) unset($this->request->data['place']['active']);
+            $this->request->data['place']['active'] = true;
+
+            $place = $this->Places->newEntity($this->request->data['place']);
+            $this->Places->save($place);
+
+            $this->set([
+                'place' => $place,
+                '_serialize' => ['place']
+            ]);
         }
-        $this->set([
-            'place' => $message,
-            '_serialize' => ['place']
-        ]);
     }
 
     /**
@@ -171,7 +169,7 @@ class PlacesController extends AppController
             }
         }
         $this->set([
-            'place' => $message,
+            'place' => $place,
             '_serialize' => ['place']
         ]);
     }
