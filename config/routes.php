@@ -48,6 +48,7 @@ Router::prefix('manager', function ($routes) {
     $routes->resources('Categories');
     $routes->resources('Groups');
     $routes->resources('Markers');
+    $routes->resources('Markerviews');
     $routes->resources('Places');
     $routes->resources('Respondents');
     $routes->resources('Users');

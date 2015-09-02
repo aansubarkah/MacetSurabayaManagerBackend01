@@ -45,10 +45,12 @@ class RespondentsController extends AppController
             $searchName = trim($this->request->query['searchName']);
             $this->checkExistence($searchName, $limit);
         } else {
+            $page = 1;
             $offset = 0;
             if (isset($this->request->query['page'])) {
                 if (is_numeric($this->request->query['page'])) {
-                    $offset = $this->request->query['page'] - 1;
+                    $page = (int)$this->request->query['page'];
+                    $offset = ($page - 1) * $limit;
                 }
             }
 
@@ -59,22 +61,28 @@ class RespondentsController extends AppController
                 }
             }
 
-            $fetchDataOptions = [
-                'conditions' => ['Respondents.active' => true],
-                'order' => ['Respondents.name' => 'ASC'],
-                'limit' => $limit,
-                'page' => $offset
-            ];
+            $conditions = ['Respondents.active' => true];
 
             if (!empty(trim($query))) {
-                $fetchDataOptions['conditions']['LOWER(Respondents.name) LIKE'] = '%' . strtolower($query) . '%';
+                $conditions['LOWER(Respondents.name) LIKE'] = '%' . strtolower($query) . '%';
             }
 
-            $this->paginate = $fetchDataOptions;
-            $respondents = $this->paginate('Respondents');
+            $respondents = $this->Respondents->find()
+                ->where($conditions)
+                ->order(['Respondents.name' => 'ASC'])
+                ->limit($limit)->page($page)->offset($offset)
+                ->toArray();
 
-            $allRespondents = $this->Respondents->find('all', $fetchDataOptions);
+            $allRespondents = $this->Respondents->find()->where($conditions);
             $total = $allRespondents->count();
+
+            // add group, to please Ember.js belongsTo
+            // always use count($array), do not using $total
+            // @param $countRespondents
+            $countRespondents = count($respondents);
+            for ($i = 0; $i < $countRespondents; $i++) {
+                $respondents[$i]['group'] = $respondents[$i]['group_id'];
+            }
 
             $meta = [
                 'total' => $total
@@ -110,20 +118,18 @@ class RespondentsController extends AppController
      */
     public function add()
     {
-        if(isset($this->request->data['respondent']['active'])) unset($this->request->data['respondent']['active']);
-
-        $respondent = $this->Respondents->newEntity($this->request->data['respondent']);
         if ($this->request->is('post')) {
-            if ($this->Respondents->save($respondent)) {
-                $message = 'Saved';
-            } else {
-                $message = 'Error';
-            }
+            if (isset($this->request->data['respondent']['active'])) unset($this->request->data['respondent']['active']);
+            $this->request->data['respondent']['active'] = true;
+
+            $respondent = $this->Respondents->newEntity($this->request->data['respondent']);
+            $this->Respondents->save($respondent);
+
+            $this->set([
+                'respondent' => $respondent,
+                '_serialize' => ['respondent']
+            ]);
         }
-        $this->set([
-            'respondent' => $message,
-            '_serialize' => ['respondent']
-        ]);
     }
 
     /**
@@ -137,7 +143,7 @@ class RespondentsController extends AppController
     {
         $respondent = $this->Respondents->get($id);
         if ($this->request->is(['patch', 'post', 'put'])) {
-            if(isset($this->request->data['respondent']['active'])) unset($this->request->data['respondent']['active']);
+            if (isset($this->request->data['respondent']['active'])) unset($this->request->data['respondent']['active']);
 
             $respondent = $this->Respondents->patchEntity($respondent, $this->request->data['respondent']);
             if ($this->Respondents->save($respondent)) {
@@ -171,7 +177,7 @@ class RespondentsController extends AppController
             }
         }
         $this->set([
-            'respondent' => $message,
+            'respondent' => $respondent,
             '_serialize' => ['respondent']
         ]);
     }
