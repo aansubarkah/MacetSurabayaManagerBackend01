@@ -36,6 +36,7 @@ class MarkerviewsFixture extends TestFixture
         'respondent_name' => ['type' => 'string', 'length' => 255, 'null' => true, 'default' => null, 'comment' => '', 'precision' => null, 'fixed' => null],
         'respondent_contact' => ['type' => 'string', 'length' => 255, 'null' => true, 'default' => null, 'comment' => '', 'precision' => null, 'fixed' => null],
         'weather_name' => ['type' => 'string', 'length' => 255, 'null' => true, 'default' => null, 'comment' => '', 'precision' => null, 'fixed' => null],
+        'place_name' => ['type' => 'string', 'length' => 255, 'null' => true, 'default' => null, 'comment' => '', 'precision' => null, 'fixed' => null],
         '_options' => [
             'engine' => null,
             'collation' => null
@@ -57,8 +58,8 @@ class MarkerviewsFixture extends TestFixture
             'weather_id' => 1,
             'lat' => 1,
             'lng' => 1,
-            'created' => '2015-09-02 17:38:09',
-            'modified' => '2015-09-02 17:38:09',
+            'created' => '2015-09-03 08:22:23',
+            'modified' => '2015-09-03 08:22:23',
             'info' => 'Lorem ipsum dolor sit amet, aliquet feugiat. Convallis morbi fringilla gravida, phasellus feugiat dapibus velit nunc, pulvinar eget sollicitudin venenatis cum nullam, vivamus ut a sed, mollitia lectus. Nulla vestibulum massa neque ut et, id hendrerit sit, feugiat in taciti enim proin nibh, tempor dignissim, rhoncus duis vestibulum nunc mattis convallis.',
             'pinned' => 1,
             'cleared' => 1,
@@ -68,7 +69,8 @@ class MarkerviewsFixture extends TestFixture
             'user_email' => 'Lorem ipsum dolor sit amet',
             'respondent_name' => 'Lorem ipsum dolor sit amet',
             'respondent_contact' => 'Lorem ipsum dolor sit amet',
-            'weather_name' => 'Lorem ipsum dolor sit amet'
+            'weather_name' => 'Lorem ipsum dolor sit amet',
+            'place_name' => 'Lorem ipsum dolor sit amet'
         ],
     ];
 }

@@ -106,6 +106,9 @@ class MarkerviewsTable extends Table
         $validator
             ->allowEmpty('weather_name');
 
+        $validator
+            ->allowEmpty('place_name');
+
         return $validator;
     }
 

@@ -35,6 +35,22 @@ class MarkerviewsController extends AppController
      */
     public function index()
     {
+        $limit = $this->limit;
+        if (isset($this->request->query['limit'])) {
+            if (is_numeric($this->request->query['limit'])) {
+                $limit = $this->request->query['limit'];
+            }
+        }
+
+        $page = 1;
+        $offset = 0;
+        if (isset($this->request->query['page'])) {
+            if (is_numeric($this->request->query['page'])) {
+                $page = (int)$this->request->query['page'];
+                $offset = ($page - 1) * $limit;
+            }
+        }
+
         $lastMinutes = 30;//default is past 30 minutes
         if (isset($this->request->query['lastminutes'])) {
             if (is_numeric($this->request->query['lastminutes'])) {
@@ -43,33 +59,33 @@ class MarkerviewsController extends AppController
         }
         $lastMinutesString = '-' . $lastMinutes . ' minutes';
 
-        $fetchDataOptions = [
-            'conditions' => [
-                'Markerviews.active' => true,
-                'OR' => [
-                    'Markerviews.created >=' => date('Y-m-d H:i:s', strtotime($lastMinutesString)),
-                    'AND' => [
-                        'Markerviews.pinned' => true,
-                        'Markerviews.cleared' => false,
-                    ]
-
-                ],
-
-            ],
-            'order' => ['Markerviews.created' => 'DESC'],
+        $conditions = [
+            'Markerviews.active' => true,
+            'OR' => [
+                'Markerviews.created >=' => date('Y-m-d H:i:s', strtotime($lastMinutesString)),
+                'AND' => [
+                    'Markerviews.pinned' => true,
+                    'Markerviews.cleared' => false,
+                ]
+            ]
         ];
 
-        $markerviews = $this->Markerviews->find('all', $fetchDataOptions);
-        $markerviews = $markerviews->toArray();
+        $markerviews = $this->Markerviews->find()
+            ->where($conditions)
+            ->order(['Markerviews.created' => 'DESC'])
+            ->limit($limit)->page($page)->offset($offset)
+            ->toArray();
+        $allMarkerviews = $this->Markerviews->find()->where($conditions);
+        $total = $allMarkerviews->count();
 
-        $countMarkerviews = count($markerviews);
+        /*
+         * for now, it disabled
+         * $countMarkerviews = count($markerviews);
         for ($i = 0; $i < $countMarkerviews; $i++) {
             $markerviews[$i]['category'] = $markerviews[$i]['category_id'];
-            $markerviews[$i]['weather'] = $markerviews[$i]['weather_id'];
         }
-
-        $allMarkerviews = $this->Markerviews->find('all', $fetchDataOptions);
-        $total = $allMarkerviews->count();
+        *
+        */
 
         $meta = [
             'total' => $total
