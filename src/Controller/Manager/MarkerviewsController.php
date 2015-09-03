@@ -51,24 +51,35 @@ class MarkerviewsController extends AppController
             }
         }
 
-        $lastMinutes = 30;//default is past 30 minutes
+        /*$lastMinutes = 30;//default is past 30 minutes
         if (isset($this->request->query['lastminutes'])) {
             if (is_numeric($this->request->query['lastminutes'])) {
                 $lastMinutes = $this->request->query['lastminutes'];
             }
         }
-        $lastMinutesString = '-' . $lastMinutes . ' minutes';
+        $lastMinutesString = '-' . $lastMinutes . ' minutes';*/
+        // query by place_name
+        $query = '';
+        if (isset($this->request->query['query'])) {
+            if (!empty(trim($this->request->query['query']))) {
+                $query = trim($this->request->query['query']);
+            }
+        }
 
         $conditions = [
             'Markerviews.active' => true,
             'OR' => [
-                'Markerviews.created >=' => date('Y-m-d H:i:s', strtotime($lastMinutesString)),
+                //'Markerviews.created >=' => date('Y-m-d H:i:s', strtotime($lastMinutesString)),
                 'AND' => [
                     'Markerviews.pinned' => true,
                     'Markerviews.cleared' => false,
                 ]
             ]
         ];
+
+        if (!empty(trim($query))) {
+            $conditions['LOWER(Markerviews.place_name) LIKE'] = '%' . strtolower($query) . '%';
+        }
 
         $markerviews = $this->Markerviews->find()
             ->where($conditions)
