@@ -1,7 +1,7 @@
 <?php
-namespace App\Controller\Manager;
+namespace App\Controller\Client;
 
-use App\Controller\Manager\AppController;
+use App\Controller\Client\AppController;
 
 /**
  * Markerviews Controller
@@ -13,7 +13,7 @@ class MarkerviewsController extends AppController
 {
     public $limit = 25;
 
-    public $paginate = [
+    /*public $paginate = [
         'fields' => ['Markerviews.id', 'Markerviews.name', 'Markerviews.active'],
         'limit' => 25,
         'page' => 0,
@@ -58,13 +58,14 @@ class MarkerviewsController extends AppController
             }
         }
         $lastMinutesString = '-' . $lastMinutes . ' minutes';
+
         // query by place_name
-        $query = '';
+        /*$query = '';
         if (isset($this->request->query['query'])) {
             if (!empty(trim($this->request->query['query']))) {
                 $query = trim($this->request->query['query']);
             }
-        }
+        }*/
 
         $conditions = [
             'Markerviews.active' => true,
@@ -72,15 +73,15 @@ class MarkerviewsController extends AppController
                 'Markerviews.created >=' => date('Y-m-d H:i:s', strtotime($lastMinutesString)),
                 'AND' => [
                     'Markerviews.active' => true,
-                    //    'Markerviews.pinned' => true,
-                    //    'Markerviews.cleared' => false,
+                    'Markerviews.pinned' => true,
+                    'Markerviews.cleared' => false,
                 ]
             ]
         ];
 
-        if (!empty(trim($query))) {
-            $conditions['LOWER(Markerviews.place_name) LIKE'] = '%' . strtolower($query) . '%';
-        }
+        //if (!empty(trim($query))) {
+        //    $conditions['LOWER(Markerviews.place_name) LIKE'] = '%' . strtolower($query) . '%';
+        //}
 
         $markerviews = $this->Markerviews->find()
             ->where($conditions)

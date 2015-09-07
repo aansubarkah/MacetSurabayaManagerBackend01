@@ -56,6 +56,13 @@ Router::prefix('manager', function ($routes) {
     $routes->fallbacks('InflectedRoute');
 });
 
+// Router prefix for client api
+Router::prefix('client', function ($routes) {
+    $routes->extensions(['json']);
+    $routes->resources('Markerviews');
+    $routes->fallbacks('InflectedRoute');
+});
+
 Router::scope('/', function ($routes) {
     /**
      * Here, we are connecting '/' (base path) to a controller called 'Pages',
