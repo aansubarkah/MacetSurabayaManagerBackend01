@@ -202,6 +202,7 @@ class RespondentsController extends AppController
         if (!empty($query)) {
             $fetchDataOptions['conditions']['LOWER(Respondents.name) LIKE'] = '%' . $query . '%';
         }
+        $fetchDataOptions['conditions']['active'] = true;
 
         $respondent = $this->Respondents->find('all', $fetchDataOptions);
 

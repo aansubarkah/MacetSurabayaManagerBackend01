@@ -195,6 +195,7 @@ class CategoriesController extends AppController
         if (!empty($query)) {
             $fetchDataOptions['conditions']['LOWER(Categories.name) LIKE'] = '%' . $query . '%';
         }
+        $fetchDataOptions['conditions']['active'] = true;
 
         $category = $this->Categories->find('all', $fetchDataOptions);
 

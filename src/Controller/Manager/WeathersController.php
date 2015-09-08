@@ -223,6 +223,7 @@ class WeathersController extends AppController
         if (!empty($query)) {
             $fetchDataOptions['conditions']['LOWER(Weathers.name) LIKE'] = '%' . $query . '%';
         }
+        $fetchDataOptions['conditions']['active'] = true;
 
         $weather = $this->Weathers->find('all', $fetchDataOptions);
 

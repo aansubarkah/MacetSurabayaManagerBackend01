@@ -13,21 +13,6 @@ class MarkerviewsController extends AppController
 {
     public $limit = 25;
 
-    /*public $paginate = [
-        'fields' => ['Markerviews.id', 'Markerviews.name', 'Markerviews.active'],
-        'limit' => 25,
-        'page' => 0,
-        'order' => [
-            'Markerviews.name' => 'asc'
-        ]
-    ];
-
-    public function initialize()
-    {
-        parent::initialize();
-        $this->loadComponent('Paginator');
-    }
-
     /**
      * Index method
      *
@@ -59,29 +44,16 @@ class MarkerviewsController extends AppController
         }
         $lastMinutesString = '-' . $lastMinutes . ' minutes';
 
-        // query by place_name
-        /*$query = '';
-        if (isset($this->request->query['query'])) {
-            if (!empty(trim($this->request->query['query']))) {
-                $query = trim($this->request->query['query']);
-            }
-        }*/
-
         $conditions = [
             'Markerviews.active' => true,
             'OR' => [
                 'Markerviews.created >=' => date('Y-m-d H:i:s', strtotime($lastMinutesString)),
                 'AND' => [
-                    'Markerviews.active' => true,
                     'Markerviews.pinned' => true,
                     'Markerviews.cleared' => false,
                 ]
             ]
         ];
-
-        //if (!empty(trim($query))) {
-        //    $conditions['LOWER(Markerviews.place_name) LIKE'] = '%' . strtolower($query) . '%';
-        //}
 
         $markerviews = $this->Markerviews->find()
             ->where($conditions)
@@ -90,15 +62,6 @@ class MarkerviewsController extends AppController
             ->toArray();
         $allMarkerviews = $this->Markerviews->find()->where($conditions);
         $total = $allMarkerviews->count();
-
-        /*
-         * for now, it disabled
-         * $countMarkerviews = count($markerviews);
-        for ($i = 0; $i < $countMarkerviews; $i++) {
-            $markerviews[$i]['category'] = $markerviews[$i]['category_id'];
-        }
-        *
-        */
 
         $meta = [
             'total' => $total
@@ -133,18 +96,7 @@ class MarkerviewsController extends AppController
      */
     public function add()
     {
-        if ($this->request->is('post')) {
-            if (isset($this->request->data['markerviewview']['active'])) unset($this->request->data['markerviewview']['active']);
-            $this->request->data['markerviewview']['active'] = true;
 
-            $markerviewview = $this->Markerviews->newEntity($this->request->data['markerviewview']);
-            $this->Markerviews->save($markerviewview);
-
-            $this->set([
-                'markerviewview' => $markerviewview,
-                '_serialize' => ['markerviewview']
-            ]);
-        }
     }
 
     /**
@@ -156,21 +108,7 @@ class MarkerviewsController extends AppController
      */
     public function edit($id = null)
     {
-        $markerviewview = $this->Markerviews->get($id);
-        if ($this->request->is(['patch', 'post', 'put'])) {
-            if (isset($this->request->data['markerviewview']['active'])) unset($this->request->data['markerviewview']['active']);
 
-            $markerviewview = $this->Markerviews->patchEntity($markerviewview, $this->request->data['markerviewview']);
-            if ($this->Markerviews->save($markerviewview)) {
-                $message = 'Saved';
-            } else {
-                $message = 'Error';
-            }
-        }
-        $this->set([
-            'markerviewview' => $message,
-            '_serialize' => ['markerviewview']
-        ]);
     }
 
     /**
@@ -182,19 +120,7 @@ class MarkerviewsController extends AppController
      */
     public function delete($id = null)
     {
-        $markerviewview = $this->Markerviews->get($id);
-        if ($this->request->is(['delete'])) {
-            $markerviewview->active = false;
-            if ($this->Markerviews->save($markerviewview)) {
-                $message = 'Deleted';
-            } else {
-                $message = 'Error';
-            }
-        }
-        $this->set([
-            'markerviewview' => $markerviewview,
-            '_serialize' => ['markerviewview']
-        ]);
+
     }
 
     public function checkExistence($name = null, $limit = 25)
