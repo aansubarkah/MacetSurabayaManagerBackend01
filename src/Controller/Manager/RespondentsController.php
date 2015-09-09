@@ -120,6 +120,7 @@ class RespondentsController extends AppController
     {
         if ($this->request->is('post')) {
             if (isset($this->request->data['respondent']['active'])) unset($this->request->data['respondent']['active']);
+            if (isset($this->request->data['respondent']['id'])) unset($this->request->data['respondent']['id']);
             $this->request->data['respondent']['active'] = true;
 
             $respondent = $this->Respondents->newEntity($this->request->data['respondent']);

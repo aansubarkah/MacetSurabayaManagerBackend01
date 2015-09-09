@@ -112,6 +112,7 @@ class PlacesController extends AppController
     {
         if ($this->request->is('post')) {
             if (isset($this->request->data['place']['active'])) unset($this->request->data['place']['active']);
+            if (isset($this->request->data['place']['id'])) unset($this->request->data['place']['id']);
             $this->request->data['place']['active'] = true;
 
             $place = $this->Places->newEntity($this->request->data['place']);

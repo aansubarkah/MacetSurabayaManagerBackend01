@@ -108,6 +108,7 @@ class MarkersController extends AppController
             $this->request->data['marker']['active'] = true;
             if (isset($this->request->data['marker']['cleared'])) unset($this->request->data['marker']['cleared']);
             $this->request->data['marker']['cleared'] = false;
+            unset($this->request->data['marker']['id']);
             unset($this->request->data['marker']['created']);
             unset($this->request->data['marker']['modified']);
 

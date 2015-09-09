@@ -112,6 +112,7 @@ class WeathersController extends AppController
     {
         if ($this->request->is('post')) {
             if (isset($this->request->data['weather']['active'])) unset($this->request->data['weather']['active']);
+            if (isset($this->request->data['weather']['id'])) unset($this->request->data['weather']['id']);
             $this->request->data['weather']['active'] = true;
 
             // check if data exists

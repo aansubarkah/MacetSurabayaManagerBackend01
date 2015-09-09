@@ -171,6 +171,7 @@ class UsersController extends AppController
     {
         //$this->request->data['active'] = 1;
         if (isset($this->request->data['user']['active'])) unset($this->request->data['user']['active']);
+        if (isset($this->request->data['user']['id'])) unset($this->request->data['user']['id']);
         $this->request->data['user']['active'] = 1;
 
         $user = $this->Users->newEntity($this->request->data['user']);
