@@ -7,6 +7,7 @@ use App\Controller\Manager\AppController;
  * Markers Controller
  *
  * @property \App\Model\Table\MarkersTable $Markers
+ * @property \App\Controller\Component\TwitterComponent $Twitter
  */
 class MarkersController extends AppController
 {
@@ -25,6 +26,28 @@ class MarkersController extends AppController
     {
         parent::initialize();
         $this->loadComponent('Paginator');
+        $this->loadComponent('Twitter');
+    }
+
+    public function twit()
+    {
+        $data = $this->Twitter->getTweets();
+
+        $this->set([
+            'data' => $data,
+            '_serialize' => ['data']
+        ]);
+    }
+
+    public function twit1()
+    {
+        $data = $this->Twitter->getMention();
+        //$data = $this->Twitter->getSearch('e100ss');
+
+        $this->set([
+            'data' => $data,
+            '_serialize' => ['data']
+        ]);
     }
 
     /**

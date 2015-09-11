@@ -179,6 +179,7 @@ class UsersController extends AppController
             $data = [
                 'id' => $user->id,
                 'user' => $user->username,
+                'email' => $user->email,
                 'token' => $token = \JWT::encode(
                     [
                         'id' => $user->id,
@@ -230,8 +231,10 @@ class UsersController extends AppController
                 Security::salt()
             ),
             //'username' => $user['username'],
+            'email' => $user['email'],
             //'_serialize' => ['token','username']
-            '_serialize' => ['token']
+            '_serialize' => ['token', 'email']
+            //'_serialize' => ['token']
         ]);
     }
 
