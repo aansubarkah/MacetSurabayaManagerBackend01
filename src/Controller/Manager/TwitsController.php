@@ -20,12 +20,15 @@ class TwitsController extends AppController
 
     private $baseTwitterUrl = 'https://api.twitter.com/1.1/';
 
-    public function mention()
+    public function mention($since_id = null, $count = 800)
     {
         $Twitter = new TwitterAPIExchange($this->settingsTwitter);
 
         $url = $this->baseTwitterUrl . 'statuses/mentions_timeline.json';
-        $getfield = '?count=2';
+        $getfield = '?count=' . $count;
+        if ($since_id !== null) {
+            $getfield = $getfield . '&since_id=' . $since_id;
+        }
         $requestMethod = 'GET';
 
         $data = $Twitter->setGetfield($getfield)
@@ -42,6 +45,29 @@ class TwitsController extends AppController
             'meta' => $meta,
             '_serialize' => ['mentions', 'meta']
         ]);
+    }
+
+    private function getMention($since_id = null, $count = 800)
+    {
+        $Twitter = new TwitterAPIExchange($this->settingsTwitter);
+
+        $url = $this->baseTwitterUrl . 'statuses/mentions_timeline.json';
+        $getfield = '?count=' . $count;
+        if ($since_id !== null) {
+            $getfield = $getfield . '&since_id=' . $since_id;
+        }
+        $requestMethod = 'GET';
+
+        $data = $Twitter->setGetfield($getfield)
+            ->buildOauth($url, $requestMethod)
+            ->performRequest();
+
+        return json_decode($data);
+    }
+
+    public function mentionToDB()
+    {
+        // first get the latest twitID from DB
     }
 
     /**
