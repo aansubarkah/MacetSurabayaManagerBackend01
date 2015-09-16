@@ -1,7 +1,7 @@
 <?php
-namespace App\Controller\Manager;
+namespace App\Controller;
 
-use App\Controller\Manager\AppController;
+use App\Controller\AppController;
 use Cake\ORM\TableRegistry;
 use TwitterAPIExchange;
 
@@ -114,7 +114,7 @@ class TwitsController extends AppController
                             'weather_id' => 1,//cerah
                             'info' => trim(str_replace('@dimanamacetid', '', $data['text'])),
                             'twitID' => $data['id'],
-                            'twitCreated' => date("Y-m-d H:i:s", strtotime($data['created_at'])),//@todo this is not working, fix
+                            'twitCreated' => date("Y-m-d H:i:s", strtotime($data['created_at'])),
                             'twitPlaceID' => $data['place']['id'],
                             'twitPlaceName' => $data['place']['name'],
                             'isTwitPlacePrecise' => 0,
@@ -140,7 +140,7 @@ class TwitsController extends AppController
                             $dataToSave['lng'] = $data['place']['bounding_box']['coordinates'][0][0][0];
                         }
 
-                        //$dataToDisplay[] = $dataToSave;
+                        $dataToDisplay[] = $dataToSave;
 
                         //save marker
                         $marker = $this->Markers->newEntity($dataToSave);
@@ -150,12 +150,15 @@ class TwitsController extends AppController
             }
         }
 
-        $this->set([
+        /*$this->set([
             'latestTwitID' => $getLatestTwitID,
             'data' => $dataToDisplay,
             'meta' => $countDataStream,
             '_serialize' => ['latestTwitID', 'data', 'meta']
-        ]);
+        ]);*/
+        $this->autoRender=false;
+        //print_r($countDataStream);
+        print_r($dataToDisplay);
     }
 
     private function findToSaveRespondent($twitterUserID, $twitterName, $twitterScreenName)

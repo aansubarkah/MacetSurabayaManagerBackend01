@@ -22,7 +22,7 @@ class RespondentsTableTest extends TestCase
         'app.categories',
         'app.users',
         'app.groups',
-        'app.wheaters'
+        'app.weather'
     ];
 
     /**

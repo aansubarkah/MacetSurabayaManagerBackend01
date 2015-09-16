@@ -29,7 +29,9 @@ class MarkerviewsTable extends Table
         parent::initialize($config);
 
         $this->table('markerviews');
+
         $this->addBehavior('Timestamp');
+
         $this->belongsTo('Categories', [
             'foreignKey' => 'category_id',
             'joinType' => 'INNER'
@@ -74,6 +76,30 @@ class MarkerviewsTable extends Table
             ->allowEmpty('info');
 
         $validator
+            ->allowEmpty('twitUserID');
+
+        $validator
+            ->allowEmpty('twitID');
+
+        $validator
+            ->add('twitCreated', 'valid', ['rule' => 'datetime'])
+            ->allowEmpty('twitCreated');
+
+        $validator
+            ->allowEmpty('twitPlaceID');
+
+        $validator
+            ->allowEmpty('twitPlaceName');
+
+        $validator
+            ->add('isTwitPlacePrecise', 'valid', ['rule' => 'boolean'])
+            ->requirePresence('isTwitPlacePrecise', 'create')
+            ->notEmpty('isTwitPlacePrecise');
+
+        $validator
+            ->allowEmpty('twitImage');
+
+        $validator
             ->add('pinned', 'valid', ['rule' => 'boolean'])
             ->requirePresence('pinned', 'create')
             ->notEmpty('pinned');
@@ -108,6 +134,26 @@ class MarkerviewsTable extends Table
 
         $validator
             ->allowEmpty('place_name');
+
+        $validator
+            ->add('isTwitUserIDExist', 'valid', ['rule' => 'numeric'])
+            ->requirePresence('isTwitUserIDExist', 'create')
+            ->notEmpty('isTwitUserIDExist');
+
+        $validator
+            ->add('isTwitExist', 'valid', ['rule' => 'numeric'])
+            ->requirePresence('isTwitExist', 'create')
+            ->notEmpty('isTwitExist');
+
+        $validator
+            ->add('isTwitImageExist', 'valid', ['rule' => 'numeric'])
+            ->requirePresence('isTwitImageExist', 'create')
+            ->notEmpty('isTwitImageExist');
+
+        $validator
+            ->add('isPlaceNameExist', 'valid', ['rule' => 'numeric'])
+            ->requirePresence('isPlaceNameExist', 'create')
+            ->notEmpty('isPlaceNameExist');
 
         return $validator;
     }

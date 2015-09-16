@@ -11,6 +11,7 @@ use Cake\Validation\Validator;
  * Respondents Model
  *
  * @property \Cake\ORM\Association\HasMany $Markers
+ * @property \Cake\ORM\Association\HasMany $Markerviews
  */
 class RespondentsTable extends Table
 {
@@ -28,7 +29,11 @@ class RespondentsTable extends Table
         $this->table('respondents');
         $this->displayField('name');
         $this->primaryKey('id');
+
         $this->hasMany('Markers', [
+            'foreignKey' => 'respondent_id'
+        ]);
+        $this->hasMany('Markerviews', [
             'foreignKey' => 'respondent_id'
         ]);
     }
@@ -43,6 +48,9 @@ class RespondentsTable extends Table
     {
         $validator
             ->allowEmpty('id', 'create');
+
+        $validator
+            ->allowEmpty('twitUserID');
 
         $validator
             ->requirePresence('name', 'create')

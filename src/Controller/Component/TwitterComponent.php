@@ -47,12 +47,6 @@ class TwitterComponent extends Component
         return json_decode($response);
     }
 
-    /*
-     * @todo add tweet_id on markers column
-     * @todo add tweet_photo_url on markers column
-     * @todo add virtual column is_place_exists, is_tweet_exists, is_tweet_photo_url_exists on markerviews view
-     * */
-
     public function getMention(){
         $Twitter = new TwitterAPIExchange($this->settingsTwitter);
 

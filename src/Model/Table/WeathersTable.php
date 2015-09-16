@@ -10,6 +10,8 @@ use Cake\Validation\Validator;
 /**
  * Weathers Model
  *
+ * @property \Cake\ORM\Association\HasMany $Markers
+ * @property \Cake\ORM\Association\HasMany $Markerviews
  */
 class WeathersTable extends Table
 {
@@ -27,6 +29,13 @@ class WeathersTable extends Table
         $this->table('weathers');
         $this->displayField('name');
         $this->primaryKey('id');
+
+        $this->hasMany('Markers', [
+            'foreignKey' => 'weather_id'
+        ]);
+        $this->hasMany('Markerviews', [
+            'foreignKey' => 'weather_id'
+        ]);
     }
 
     /**

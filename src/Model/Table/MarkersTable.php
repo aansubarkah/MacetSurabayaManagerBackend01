@@ -13,7 +13,7 @@ use Cake\Validation\Validator;
  * @property \Cake\ORM\Association\BelongsTo $Categories
  * @property \Cake\ORM\Association\BelongsTo $Users
  * @property \Cake\ORM\Association\BelongsTo $Respondents
- * @property \Cake\ORM\Association\BelongsTo $Wheaters
+ * @property \Cake\ORM\Association\BelongsTo $Weather
  */
 class MarkersTable extends Table
 {
@@ -31,7 +31,9 @@ class MarkersTable extends Table
         $this->table('markers');
         $this->displayField('id');
         $this->primaryKey('id');
+
         $this->addBehavior('Timestamp');
+
         $this->belongsTo('Categories', [
             'foreignKey' => 'category_id',
             'joinType' => 'INNER'
@@ -44,8 +46,8 @@ class MarkersTable extends Table
             'foreignKey' => 'respondent_id',
             'joinType' => 'INNER'
         ]);
-        $this->belongsTo('Wheaters', [
-            'foreignKey' => 'wheater_id',
+        $this->belongsTo('Weathers', [
+            'foreignKey' => 'weather_id',
             'joinType' => 'INNER'
         ]);
     }
@@ -59,7 +61,8 @@ class MarkersTable extends Table
     public function validationDefault(Validator $validator)
     {
         $validator
-            ->allowEmpty('id', 'create');
+            ->allowEmpty('id', 'create')
+            ->add('id', 'unique', ['rule' => 'validateUnique', 'provider' => 'table']);
 
         $validator
             ->add('lat', 'valid', ['rule' => 'numeric'])
@@ -72,8 +75,28 @@ class MarkersTable extends Table
             ->notEmpty('lng');
 
         $validator
-            ->requirePresence('info', 'create')
-            ->notEmpty('info');
+            ->allowEmpty('info');
+
+        $validator
+            ->allowEmpty('twitID');
+
+        $validator
+            ->add('twitCreated', 'valid', ['rule' => 'datetime'])
+            ->allowEmpty('twitCreated');
+
+        $validator
+            ->allowEmpty('twitPlaceID');
+
+        $validator
+            ->allowEmpty('twitPlaceName');
+
+        $validator
+            ->add('isTwitPlacePrecise', 'valid', ['rule' => 'boolean'])
+            ->requirePresence('isTwitPlacePrecise', 'create')
+            ->notEmpty('isTwitPlacePrecise');
+
+        $validator
+            ->allowEmpty('twitImage');
 
         $validator
             ->add('pinned', 'valid', ['rule' => 'boolean'])
@@ -105,7 +128,7 @@ class MarkersTable extends Table
         $rules->add($rules->existsIn(['category_id'], 'Categories'));
         $rules->add($rules->existsIn(['user_id'], 'Users'));
         $rules->add($rules->existsIn(['respondent_id'], 'Respondents'));
-        $rules->add($rules->existsIn(['wheater_id'], 'Wheaters'));
+        $rules->add($rules->existsIn(['weather_id'], 'Weathers'));
         return $rules;
     }
 }
